@@ -41,7 +41,7 @@ io.on('connection', function(socket){
     }
   });
 });
- let serverPort=8088;
+ let serverPort=process.env.PORT || 8088;
 // inicia o servidor na porta informada, no caso vamo iniciar na porta 3000
 http.listen(serverPort, function(){
   console.log('Servidor rodando em: http://localhost:'+serverPort);
