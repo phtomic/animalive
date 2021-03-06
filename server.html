@@ -1,0 +1,76 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Webchat com socketIO</title>
+
+<video id="video" controls></video>
+<br>
+<input type="text" id="videoURL">
+<button onclick="document.getElementById('videoURL').value=''">Clear</button>
+<button onclick="sockNext();">--></button>
+
+<!--  importar o client do socketIO-->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+function sockNext(){
+    var elem=document.getElementById("videoURL").value;
+    socket.emit('response',{type:"srcNext",data:elem});
+}
+function sockPrev(){
+    socket.emit('response',{type:"srcPrev",data:""});
+}
+var isSeeking=true;
+var socket = io();
+var vid = document.getElementById("video");
+console.log(socket.emit('response',{type:"getTime",data:""}));
+socket.on('message', function(msg){
+    isSeeking=false;
+    switch(msg.type){
+        case "hostTime":
+            vid.currentTime=msg.data.time;
+            if(vid.src!=msg.data.src)
+                vid.src=msg.data.src;
+            vid.load();
+            break;
+        case "sst":
+            if(msg.data.isPaused){
+                vid.play();
+            }else{
+                vid.pause();
+            }
+            vid.currentTime=msg.data.time;
+            break;
+        case "src":
+            vid.src=msg.data.src;
+            vid.load();
+            break;
+    }
+    isSeeking=true;
+});
+vid.onpause = function() {
+    if(isSeeking){
+        socket.emit('response',
+        {
+            type:"ss",
+            data:{
+                isPaused:false,
+                time:vid.currentTime
+            }
+        });
+    }
+};
+vid.onplay = function() {
+    if(isSeeking){
+        socket.emit('response',
+        {
+            type:"ss",
+            data:{
+                isPaused:true,
+                time:vid.currentTime
+            }
+        });
+    }
+};
+vid.canplay=function(){
+    vid.play();
+};
+</script>
